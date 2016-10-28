@@ -11,6 +11,17 @@
     This file (DIRACbenchmark.py) is intended to be the ultimate upstream
     shared by different users of the DIRAC Benchmark 2012 (DB12). The
     canonical version can be found at https://github.com/DIRACGrid/DB12
+    
+    This script can either be imported or run from the command line:
+    
+    ./DIRACbenchmark.py [NUMBER]
+    
+    where NUMBER is 'single', 'wholenode', 'jobslot' or a number, and 
+    gives the number of benchmark processes to run in parallel. If 
+    NUMBER is not given, then a single process is run. 'Wholenode'
+    and 'jobslot' cause the number of processes to be taken from
+    $MACHINEFEATURES/total_cpu or $JOBFEATURES/allocated_cpu 
+    respectively.
 """
 
 import os
@@ -103,7 +114,7 @@ def wholenodeDiracBenchmark( instances = None, iterations = 1 ):
   # Try $MACHINEFEATURES first if not given by caller
   if not instances and 'MACHINEFEATURES' in os.environ:
     try:
-      instances = int( urllib2.urlopen( os.environ['MACHINEFEATURES'] + '/total_cpu' ).read() )
+      instances = int( urllib.urlopen( os.environ['MACHINEFEATURES'] + '/total_cpu' ).read() )
     except:
       pass
 
@@ -124,7 +135,7 @@ def jobslotDiracBenchmark( instances = None, iterations = 1 ):
   # Try $JOBFEATURES first if not given by caller
   if not instances and 'JOBFEATURES' in os.environ:
     try:
-      instances = int( urllib2.urlopen( os.environ['JOBFEATURES'] + '/allocated_cpu' ).read() )
+      instances = int( urllib.urlopen( os.environ['JOBFEATURES'] + '/allocated_cpu' ).read() )
     except:
       pass
 
