@@ -14,14 +14,11 @@
     
     This script can either be imported or run from the command line:
     
-    ./DIRACbenchmark.py [NUMBER]
+    ./DIRACbenchmark.py NUMBER
     
-    where NUMBER is 'single', 'wholenode', 'jobslot' or a number, and 
-    gives the number of benchmark processes to run in parallel. If 
-    NUMBER is not given, then a single process is run. 'Wholenode'
-    and 'jobslot' cause the number of processes to be taken from
-    $MACHINEFEATURES/total_cpu or $JOBFEATURES/allocated_cpu 
-    respectively.
+    where NUMBER gives the number of benchmark processes to run in parallel.
+    
+    Run  ./DIRACbenchmark.py help  to see more options.
 """
 
 import os
@@ -30,7 +27,7 @@ import random
 import urllib
 import multiprocessing
 
-version = '00.02 DB12'
+version = '00.03 DB12'
 
 def singleDiracBenchmark( iterations = 1, extraIteration = False ):
   """ Get Normalized Power of one CPU in DIRAC Benchmark 2012 units (DB12)
