@@ -26,11 +26,12 @@
 
 import os
 import sys
+import getopt
 import random
 import urllib
 import multiprocessing
 
-version = '0.1 DB12'
+version = '00.01 DB12'
 
 def singleDiracBenchmark( iterations = 1 ):
   """ Get Normalized Power of one CPU in DIRAC Benchmark 2012 units (DB12)
@@ -149,6 +150,8 @@ def jobslotDiracBenchmark( instances = None, iterations = 1 ):
 # If we run as a command
 #   
 if __name__ == "__main__":
+
+#  optList, __args__ = getopt.getopt( sys.argv[1:] )
 
   if len(sys.argv) == 1 or sys.argv[1] == 'single':
     print singleDiracBenchmark()['NORM']
