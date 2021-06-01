@@ -1,8 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 ########################################################################
 # File :    DIRACbenchmark.py
-# Author :  Andrew McNab 
+# Author :  Andrew McNab, Matthias J. Schnepf
 ########################################################################
 
 """ DIRAC Benchmark 2012 by Ricardo Graciani, and wrapper functions to
@@ -27,7 +27,7 @@ import random
 import urllib
 import multiprocessing
 
-version = '00.04 DB12'
+version = '00.05 DB12'
 
 def singleDiracBenchmark( iterations = 1, measuredCopies = None ):
   """ Get Normalized Power of one CPU in DIRAC Benchmark 2012 units (DB12)
@@ -38,8 +38,8 @@ def singleDiracBenchmark( iterations = 1, measuredCopies = None ):
   n = int( 1000 * 1000 * 12.5 )
   calib = 250.0
 
-  m = long( 0 )
-  m2 = long( 0 )
+  m = int( 0 )
+  m2 = int( 0 )
   p = 0
   p2 = 0
   # Do one iteration extra to allow CPUs with variable speed (we ignore zeroth iteration)
@@ -50,7 +50,7 @@ def singleDiracBenchmark( iterations = 1, measuredCopies = None ):
       start = os.times()
 
     # Now the iterations
-    for _j in xrange( n ):
+    for _j in range( n ):
       t = random.normalvariate( 10, 1 )
       m += t
       m2 += t * t
@@ -220,32 +220,32 @@ DIRACbenchmark.py is distributed from  https://github.com/DIRACGrid/DB12
     elif arg == '--extra-iteration':
       extraIteration = True
     elif arg == '--help' or arg == 'help':
-      print helpString
+      print(helpString)
       sys.exit(0)
     elif not arg.startswith('--'):
       copies = arg
 
   if copies == 'version':
-    print version
+    print(version)
     sys.exit(0)
 
   if copies is None or copies == 'single':
-     print singleDiracBenchmark()['NORM']
+     print(singleDiracBenchmark()['NORM'])
      sys.exit(0)
 
   if copies == 'wholenode':
     result = wholenodeDiracBenchmark( iterations = iterations, extraIteration = extraIteration )
-    print result['copies'],result['sum'],result['arithmetic_mean'],result['geometric_mean'],result['median']
-    print ' '.join([str(i) for i in result['raw']])
+    print(result['copies'],result['sum'],result['arithmetic_mean'],result['geometric_mean'],result['median'])
+    print(' '.join([str(i) for i in result['raw']]))
     sys.exit(0)
 
   if copies == 'jobslot':
     result = jobslotDiracBenchmark( iterations = iterations, extraIteration = extraIteration )
-    print result['copies'],result['sum'],result['arithmetic_mean'],result['geometric_mean'],result['median']
-    print ' '.join([str(i) for i in result['raw']])
+    print(result['copies'],result['sum'],result['arithmetic_mean'],result['geometric_mean'],result['median'])
+    print(' '.join([str(i) for i in result['raw']]))
     sys.exit(0)
 
   result = multipleDiracBenchmark( copies = int(copies), iterations = iterations, extraIteration = extraIteration )
-  print result['copies'],result['sum'],result['arithmetic_mean'],result['geometric_mean'],result['median']
-  print ' '.join([str(i) for i in result['raw']])
+  print(result['copies'],result['sum'],result['arithmetic_mean'],result['geometric_mean'],result['median'])
+  print(' '.join([str(i) for i in result['raw']]))
   sys.exit(0)
