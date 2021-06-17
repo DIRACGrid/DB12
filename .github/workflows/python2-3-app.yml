@@ -1,0 +1,34 @@
+name: DB12 testing
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: False
+      matrix:
+        python_version:
+          - 2.7
+          - 3.6
+          - 3.9
+        
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+        
+    - uses: actions/checkout@v2
+    - name: Prepare environment
+      run: .github/workflows/prepare_environment.sh ${{ matrix.python_version }}
+        
+    - name: Run pylint
+      run: |
+        . "${CONDA}/bin/activate" test-env
+        list="$(find . -name \*.py -and -not -name '__init*' -and -not -name 'setup*')"
+        for file in $list; do pylint $file --max-statements=100; done
+        
+    - name: Run pytest
+      run: |
+        . "${CONDA}/bin/activate" test-env
+        pytest tests
