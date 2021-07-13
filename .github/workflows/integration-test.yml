@@ -1,0 +1,25 @@
+name: Integration Test
+
+on:
+  workflow_run:
+      workflows: ["DB12 Testing"]
+      types: 
+        - completed
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:  
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+    
+    - uses: dawidd6/action-download-artifact@v2
+      with:
+        workflow: python2-3-app.yml
+        name: Integration test
+    
+    - name: Comparing results
+      shell: bash
+      run: bash tests/integration_test.sh

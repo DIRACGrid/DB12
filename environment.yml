@@ -1,0 +1,9 @@
+name: python
+
+channels:
+  - defaults
+  
+dependencies:
+  - pytest
+  - pylint
+  - future
