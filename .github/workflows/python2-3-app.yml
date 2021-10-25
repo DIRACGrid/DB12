@@ -3,6 +3,19 @@ name: DB12 testing
 on: [push, pull_request]
 
 jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'push'
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+    - name: Install pre-commit
+      run: pip install pre-commit
+    - name: Run pre-commit
+      run: pre-commit run --all-files --show-diff-on-failure
+
   build:
     runs-on: ubuntu-latest
     strategy:
@@ -12,22 +25,21 @@ jobs:
           - 2.7
           - 3.6
           - 3.9
-        
+
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
       uses: actions/setup-python@v2
-        
+
     - uses: actions/checkout@v2
     - name: Prepare environment
       run: .github/workflows/prepare_environment.sh ${{ matrix.python_version }}
-        
+
     - name: Run pylint
       run: |
         . "${CONDA}/bin/activate" test-env
-        list="$(find . -name \*.py -and -not -name '__init*' -and -not -name 'setup*')"
-        for file in $list; do pylint $file --max-statements=100; done
-        
+        pylint -E src/db12/ tests/
+
     - name: Run pytest
       run: |
         . "${CONDA}/bin/activate" test-env

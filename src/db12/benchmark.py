@@ -5,35 +5,45 @@ from __future__ import division
 from __future__ import absolute_import
 
 import os
+import logging
+import json
 import sys
 import random
+import re
 import multiprocessing
 
 if sys.version_info[0] < 3:
-    #pylint: disable = E, W, R, C
+    # pylint: disable = E, W, R, C
+    # python3 range corresponds to xrange in python2
     range = xrange
 
+
 def single_dirac_benchmark(iterations_num=1, measured_copies=None):
-    """Get Normalized Power of one CPU in DIRAC Benchmark 2012 units (DB12)"""
-    #pylint: disable = too-many-locals
+    """Get Normalized Power of one CPU in DIRAC Benchmark 2012 units (DB12)
+
+    :param int iterations_num: number of iterations to run
+    :param multiprocessing.Value measured_copies: extra iterations to run
+    """
+    # pylint: disable = too-many-locals
     # This number of iterations corresponds to 1kHS2k.seconds, i.e. 250 HS06 seconds
 
     iters = int(1000 * 1000 * 12.5)
     calib = 250.0
+    m_1 = int(0)
+    m_2 = int(0)
     if sys.version_info[0] < 3:
-        #pylint: disable = E, W, R, C
+        # pylint: disable = E, W, R, C
+        # long type does not exist anymore in python3 but was used in this context with python2
         m_1 = long(0)
         m_2 = long(0)
-    else:
-        m_1 = int(0)
-        m_2 = int(0)
+
     p_1 = 0
     p_2 = 0
     # Do one iteration extra to allow CPUs with variable speed (we ignore zeroth iteration)
     # Do one or more extra iterations to avoid tail effects when copies run in parallel
     it_1 = 0
     while (it_1 <= iterations_num) or (
-            measured_copies is not None and measured_copies.value > 0
+        measured_copies is not None and measured_copies.value > 0
     ):
         if it_1 == 1:
             start = os.times()
@@ -60,17 +70,27 @@ def single_dirac_benchmark(iterations_num=1, measured_copies=None):
     if not cput:
         return None
 
+    norm = get_norm_correction(calib * iterations_num / cput)
+
     # Return DIRAC-compatible values
     output = {
         "CPU": cput,
         "WALL": wall,
-        "NORM": calib * iterations_num / cput,
+        "NORM": norm,
         "UNIT": "DB12",
     }
     return output
 
-def single_dirac_benchmark_process(result_object, iterations_num=1, measured_copies=None):
-    """Run single_dirac_benchmark() in a multiprocessing friendly way"""
+
+def single_dirac_benchmark_process(
+    result_object, iterations_num=1, measured_copies=None
+):
+    """Run single_dirac_benchmark() in a multiprocessing friendly way
+
+    :param multiprocessing.Value result_object: result to be returned
+    :param int iterations_num: number of iterations to run
+    :param multiprocessing.Value measured_copies: extra iterations to run
+    """
 
     benchmark_result = single_dirac_benchmark(
         iterations_num=iterations_num, measured_copies=measured_copies
@@ -82,8 +102,14 @@ def single_dirac_benchmark_process(result_object, iterations_num=1, measured_cop
     # This makes it easy to use with multiprocessing.Process
     result_object.value = benchmark_result["NORM"]
 
+
 def multiple_dirac_benchmark(copies=1, iterations_num=1, extra_iter=False):
-    """Run multiple copies of the DIRAC Benchmark in parallel"""
+    """Run multiple copies of the DIRAC Benchmark in parallel
+
+    :param int copies: number of single benchmark to run in parallel
+    :param int interations_num: number of iterations to run
+    :param bool extra_iter: to know whether it should include extra iterations
+    """
 
     processes = []
     results = []
@@ -133,14 +159,20 @@ def multiple_dirac_benchmark(copies=1, iterations_num=1, extra_iter=False):
     }
     return output
 
+
 def wholenode_dirac_benchmark(copies=None, iterations_num=1, extra_iter=False):
-    """Run as many copies as needed to occupy the whole machine"""
+    """Run as many copies as needed to occupy the whole machine
+
+    :param int copies: number of single benchmark to run in parallel
+    :param int interations_num: number of iterations to run
+    :param bool extra_iter: to know whether it should include extra iterations
+    """
 
     # If not given by caller then just count CPUs
     if copies is None:
         try:
             copies = multiprocessing.cpu_count()
-        except: # pylint: disable=bare-except
+        except:  # pylint: disable=bare-except
             copies = 1
 
     return multiple_dirac_benchmark(
@@ -148,13 +180,55 @@ def wholenode_dirac_benchmark(copies=None, iterations_num=1, extra_iter=False):
     )
 
 
-def jobslot_dirac_benchmark(copies=None, iterations_num=1, extra_iter=False):
-    """Run as many copies as needed to occupy the job slot"""
+def get_norm_correction(norm_computed):
+    """Apply a factor on the norm depending on the python version used and
+    the architecture targeted in order to reproduce the original norm from python2.
 
-    # If not given by caller then just run one copy
-    if copies is None:
-        copies = 1
+    :param float norm_computed: raw norm
+    """
+    # If python2 is used, then no action is needed
+    if sys.version_info[0] < 3:
+        return norm_computed
 
-    return multiple_dirac_benchmark(
-        copies=copies, iterations_num=iterations_num, extra_iter=extra_iter
+    logging.warn(
+        "You are executing DB12 using python3, DB12 score is generally higher than it was with python2"
     )
+    logging.warn("Trying to apply a correction...")
+
+    # Get the dictionary of factors
+    with open(
+        os.path.join(os.path.dirname(__file__), "factors.json"), "r"
+    ) as file_object:
+        factor_dict = json.load(file_object)
+
+    # Get Python version: if not in the dictionary, no action can be performed
+    major, minor, micro = sys.version_info[0:3]
+    python_version = "%s.%s.%s" % (major, minor, micro)
+    if python_version not in factor_dict.keys():
+        logging.warn(
+            "Cannot correct the score, return the raw norm: the python version you are using has not been analyzed. \
+            Please consult https://github.com/DIRACGrid/DB12/blob/master/score-analysis/README.md for further details"
+        )
+        return norm_computed
+
+    # Get CPU brand name
+    try:
+        with open("/proc/cpuinfo", "r") as file_object:
+            content = file_object.read()
+        cpu_model_name = re.findall("model name\t: ([a-zA-Z]*) ", content)[0]
+    except IOError:
+        logging.warn(
+            "Cannot correct the score, return the raw norm: cannot access CPU information"
+        )
+        return norm_computed
+
+    factor = factor_dict[python_version].get(cpu_model_name)
+    if not factor:
+        logging.warn(
+            "Cannot correct the score, return the raw norm: the CPU model you are using has not been analyzed. \
+             Please consult https://github.com/DIRACGrid/DB12/blob/master/score-analysis/README.md for further details."
+        )
+        return norm_computed
+
+    logging.info("Applying a factor of %s to the raw norm %s", factor, norm_computed)
+    return norm_computed * factor
