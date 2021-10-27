@@ -96,6 +96,7 @@ def main():
     COPIES SUM ARITHMETIC-MEAN GEOMETRIC-MEAN MEDIAN
     RAW-RESULTS"""
 
+
     help_string = """Run the DB12 benchmark from the command line.
 Unless the token "single" is used, the script prints the following results to
 two lines on stdout:
