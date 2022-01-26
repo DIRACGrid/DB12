@@ -196,10 +196,10 @@ def get_norm_correction(norm_computed):
     if sys.version_info[0] < 3:
         return norm_computed
 
-    logging.warn(
+    logging.warning(
         "You are executing DB12 using python3, DB12 score is generally higher than it was with python2"
     )
-    logging.warn("Trying to apply a correction...")
+    logging.warning("Trying to apply a correction...")
 
     # Get the dictionary of factors
     with open(
@@ -208,13 +208,18 @@ def get_norm_correction(norm_computed):
         factor_dict = json.load(file_object)
 
     # Get Python version: if not in the dictionary, no action can be performed
-    major, minor, micro = sys.version_info[0:3]
-    python_version = "%s.%s.%s" % (major, minor, micro)
-    if python_version not in factor_dict.keys():
-        logging.warn(
-            "Cannot correct the score, return the raw norm: the python version you are using has not been analyzed."
+    major, minor = sys.version_info[0:2]
+    python_version = "%s.%s" % (major, minor)
+    python_versions_dict = factor_dict["python_version"]
+    if python_version not in python_versions_dict.keys():
+        logging.warning(
+            "Cannot correct the score, return the raw norm: the python version %s has not been analyzed.",
+            python_version,
         )
-        logging.warn(
+        logging.warning(
+            "Versions available are: %s", " ".join(python_versions_dict.keys())
+        )
+        logging.warning(
             "Please consult https://zenodo.org/record/5647834 for further details"
         )
         return norm_computed
@@ -223,19 +228,22 @@ def get_norm_correction(norm_computed):
     try:
         with open("/proc/cpuinfo", "r") as file_object:
             content = file_object.read()
-        cpu_model_name = re.findall("model name\t: ([a-zA-Z]*) ", content)[0]
-    except IOError:
-        logging.warn(
+        cpu_brand_name = re.findall("model name\t: ([a-zA-Z]*) ", content)[0]
+    except (IOError, IndexError):
+        logging.warning(
             "Cannot correct the score, return the raw norm: cannot access CPU information"
         )
         return norm_computed
 
-    factor = factor_dict[python_version].get(cpu_model_name)
+    cpus_dict = python_versions_dict[python_version]["cpu_brand"]
+    factor = cpus_dict.get(cpu_brand_name)
     if not factor:
-        logging.warn(
-            "Cannot correct the score, return the raw norm: the CPU model you are using has not been analyzed."
+        logging.warning(
+            "Cannot correct the score, return the raw norm: the CPU brand %s has not been analyzed.",
+            cpu_brand_name,
         )
-        logging.warn(
+        logging.warning("Brands available are: %s", " ".join(cpus_dict.keys()))
+        logging.warning(
             "Please consult https://zenodo.org/record/5647834 for further details."
         )
         return norm_computed

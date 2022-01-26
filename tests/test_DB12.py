@@ -2,10 +2,12 @@
 from __future__ import absolute_import
 from __future__ import division
 import pytest
+import mock
 
 from db12 import single_dirac_benchmark
 from db12 import multiple_dirac_benchmark
 from db12 import wholenode_dirac_benchmark
+from db12.benchmark import get_norm_correction
 
 
 @pytest.mark.parametrize(
@@ -94,3 +96,32 @@ def test_dirac_benchmark(copies, iterations, extra_iteration):
             assert i >= 0
             assert i < 100
             k = k + 1
+
+
+@pytest.mark.parametrize(
+    "python_version, cpu_brand, norm_computed, norm_expected",
+    [
+        ((3, 9, 7), "Intel", 15, 12.9),
+        ((3, 9, 7), "AMD", 15, 10.65),
+        ((7, 9, 3), "Intel", 15, 15),
+        ((3, 9, 7), "Blob", 15, 15),
+        ((2, 7, 5), "Blob", 15, 15),
+        ((3, 9, 7), "", 15, 15),
+    ],
+)
+def test_norm_correction(
+    mocker, python_version, cpu_brand, norm_computed, norm_expected
+):
+    """Testing the norm correction"""
+    ret = []
+    if cpu_brand:
+        ret = [cpu_brand]
+
+    mocker.patch(
+        "re.findall",
+        return_value=ret,
+    )
+    db12_sys_mocker = mocker.patch("db12.benchmark.sys")
+    db12_sys_mocker.version_info = python_version
+    result = get_norm_correction(norm_computed)
+    assert round(result, 2) == norm_expected

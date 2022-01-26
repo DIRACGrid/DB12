@@ -4,7 +4,9 @@ channels:
   - defaults
 
 dependencies:
-  - pytest
-  - pylint
   - future
+  - mock
   - pre-commit
+  - pylint
+  - pytest
+  - pytest-mock
