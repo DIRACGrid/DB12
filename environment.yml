@@ -3,8 +3,6 @@ name: db12
 dependencies:
   - python =3.9
   - future
-  - mock
   - pre-commit
-  - pylint
-  - pytest
-  - pytest-mock
+  - pip:
+    - -e .
