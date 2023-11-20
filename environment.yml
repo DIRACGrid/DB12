@@ -4,5 +4,8 @@ dependencies:
   - python =3.9
   - future
   - pre-commit
+  - pytest
+  - mock
+  - pytest-mock
   - pip:
     - -e .
