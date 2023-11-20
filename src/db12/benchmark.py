@@ -228,7 +228,11 @@ def get_norm_correction(norm_computed):
     try:
         with open("/proc/cpuinfo", "r") as file_object:
             content = file_object.read()
-        cpu_brand_name = re.findall("model name\t: ([a-zA-Z]*)", content)[0]
+        cpu_brand_name = re.findall("vendor_id\t: ([a-zA-Z]*)", content)[0]
+        if cpu_brand_name == "GenuineIntel":
+            cpu_brand_name = "Intel"
+        elif cpu_brand_name == "AuthenticAMD":
+            cpu_brand_name = "AMD"
     except (IOError, IndexError):
         logging.warning(
             "Cannot correct the score, return the raw norm: cannot access CPU information"
