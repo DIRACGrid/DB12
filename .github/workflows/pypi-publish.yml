@@ -1,6 +1,6 @@
 name: Upload Package to Pypi
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
   deploy:

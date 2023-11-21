@@ -1,13 +1,13 @@
 name: DB12 testing
 
-on: [push, pull_request]
+on: [pull_request]
 
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
     if: github.event_name != 'push'
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - uses: actions/setup-python@v2
       with:
         python-version: '3.9'
@@ -16,31 +16,47 @@ jobs:
     - name: Run pre-commit
       run: pre-commit run --all-files --show-diff-on-failure
 
-  build:
-    runs-on: ubuntu-latest
+  pytest:
+    runs-on: ubuntu-20.04
+    if: github.event_name != 'push' || github.repository == 'DIRACGrid/db12'
+
     strategy:
-      fail-fast: False
       matrix:
-        python_version:
-          - 2.7
-          - 3.6
-          - 3.9
+        python:
+          - 2.7.18
+          - 3.6.15
+          - 3.9.17
+          - 3.11.4
 
+    container: python:${{ matrix.python }}-slim
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
-
-    - uses: actions/checkout@v2
-    - name: Prepare environment
-      run: .github/workflows/prepare_environment.sh ${{ matrix.python_version }}
-
-    - name: Run pylint
+    - uses: actions/checkout@v4
+    - name: Installing dependencies
       run: |
-        . "${CONDA}/bin/activate" test-env
-        pylint -E src/db12/ tests/
-
+        apt update && apt install -y git
+        python -m pip install pytest mock pytest-mock
+        pip install -e .
     - name: Run pytest
+      run: pytest
+
+  pylint:
+    runs-on: ubuntu-20.04
+    if: github.event_name != 'push' || github.repository == 'DIRACGrid/db12'
+    timeout-minutes: 10
+
+    strategy:
+      matrix:
+        python:
+          - 2.7.18
+          - 3.6.15
+          - 3.9.17
+          - 3.11.4
+
+    container: python:${{ matrix.python }}-slim
+    steps:
+    - uses: actions/checkout@v4
+    - name: Installing dependencies
       run: |
-        . "${CONDA}/bin/activate" test-env
-        pytest tests
+        python -m pip install pylint pytest mock
+    - name: Run pylint
+      run: pylint -E src/db12 tests

@@ -1,8 +1,9 @@
 """Unit test for DB12"""
+from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
+
 import pytest
-import mock
 
 from db12 import single_dirac_benchmark
 from db12 import multiple_dirac_benchmark
