@@ -64,7 +64,7 @@ def single_dirac_benchmark(iterations_num=1, measured_copies=None, correction=Tr
 
         it_1 += 1
 
-    cput = sum(end[:4]) - sum(start[:4])
+    cput = sum(end[:4]) - sum(start[:4])  # pylint: disable=used-before-assignment
     wall = end[4] - start[4]
 
     if not cput:
