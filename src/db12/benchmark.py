@@ -27,8 +27,9 @@ def single_dirac_benchmark(iterations_num=1, measured_copies=None, correction=Tr
     # pylint: disable = too-many-locals
     # This number of iterations corresponds to 1kHS2k.seconds, i.e. 250 HS06 seconds
 
-    iters = int(1000 * 1000 * 12.5)
-    calib = 250.0
+    complexity = 2.0 # This parameter multiplies amount of work that benchmark have to do
+    iters = int(1000 * 1000 * 12.5 * complexity)
+    calib = 250.0 * complexity
     m_1 = int(0)
     m_2 = int(0)
     if sys.version_info[0] < 3:
@@ -69,6 +70,12 @@ def single_dirac_benchmark(iterations_num=1, measured_copies=None, correction=Tr
 
     if not cput:
         return None
+
+    # Since os.times() is so innacurate (just two numbers after comma) we introduce small randomization.
+    # More on that here: https://github.com/DIRACGrid/DB12/issues/15
+    random_factor = 0.01 * random.random() - 0.005
+    cput = cput + random_factor
+    wall = wall + random_factor
 
     norm = calib * iterations_num / cput
     if correction:
@@ -194,11 +201,9 @@ def get_norm_correction(norm_computed):
     """
     # If python2 is used, then no action is needed
     if sys.version_info[0] < 3:
-        return norm_computed
-
-    logging.warning(
-        "You are executing DB12 using python3, DB12 score is generally higher than it was with python2"
-    )
+        logging.warning(
+            "You are executing DB12 using python2, DB12 score is generally lower than it would be with python3"
+        )
     logging.warning("Trying to apply a correction...")
 
     # Get the dictionary of factors
