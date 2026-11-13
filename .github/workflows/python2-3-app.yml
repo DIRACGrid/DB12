@@ -21,6 +21,7 @@ jobs:
     if: github.event_name != 'push' || github.repository == 'DIRACGrid/db12'
 
     strategy:
+      fail-fast: false
       matrix:
         python:
           - 2.7.18
@@ -28,12 +29,8 @@ jobs:
           - 3.9.17
           - 3.11.4
 
-    container: python:${{ matrix.python }}-slim
+    container: python:${{ matrix.python }}
     steps:
-    - name: Install git
-      run: |
-        apt-get update
-        apt-get install -y git
     - uses: actions/checkout@v4
     - name: Installing dependencies
       run: |
@@ -48,6 +45,7 @@ jobs:
     timeout-minutes: 10
 
     strategy:
+      fail-fast: false
       matrix:
         python:
           - 2.7.18
@@ -55,12 +53,8 @@ jobs:
           - 3.9.17
           - 3.11.4
 
-    container: python:${{ matrix.python }}-slim
+    container: python:${{ matrix.python }}
     steps:
-    - name: Install git
-      run: |
-        apt-get update
-        apt-get install -y git
     - uses: actions/checkout@v4
     - name: Installing dependencies
       run: |
