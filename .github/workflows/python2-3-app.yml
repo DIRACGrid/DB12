@@ -30,10 +30,13 @@ jobs:
 
     container: python:${{ matrix.python }}-slim
     steps:
+    - name: Install git
+      run: |
+        apt-get update
+        apt-get install -y git
     - uses: actions/checkout@v4
     - name: Installing dependencies
       run: |
-        apt update && apt install -y git
         python -m pip install pytest mock pytest-mock
         pip install -e .
     - name: Run pytest
@@ -54,6 +57,10 @@ jobs:
 
     container: python:${{ matrix.python }}-slim
     steps:
+    - name: Install git
+      run: |
+        apt-get update
+        apt-get install -y git
     - uses: actions/checkout@v4
     - name: Installing dependencies
       run: |
