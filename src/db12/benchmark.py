@@ -42,7 +42,10 @@ def single_dirac_benchmark(iterations_num=1, measured_copies=None, correction=Tr
     # Do one iteration extra to allow CPUs with variable speed (we ignore zeroth iteration)
     # Do one or more extra iterations to avoid tail effects when copies run in parallel
     it_1 = 0
+    # Start and end default to "now": if the calibration iteration never runs,
+    # cput/wall end up ~0 and the benchmark returns None.
     end = os.times()
+    start = end
     while (it_1 <= iterations_num) or (
         measured_copies is not None and measured_copies.value > 0
     ):
