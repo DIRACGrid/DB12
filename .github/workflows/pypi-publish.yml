@@ -2,16 +2,20 @@ name: Upload Package to Pypi
 
 on: [push]
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
+permissions: {}
 
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      is-tag: ${{ steps.check-tag.outputs.is-tag }}
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
       uses: actions/setup-python@v2
-
-    - uses: actions/checkout@v2
     - name: Install pypa/build
       run: >-
         python -m
@@ -26,11 +30,38 @@ jobs:
         --wheel
         --outdir dist/
         .
-
+    - name: Check if this is a tag push
+      id: check-tag
+      env:
+        IS_TAG: ${{ startsWith(github.ref, 'refs/tags') }}
+      run: echo "is-tag=$IS_TAG" >> "$GITHUB_OUTPUT"
+    - name: Upload the distribution packages
+      if: steps.check-tag.outputs.is-tag == 'true'
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: db12-dist
+        path: dist/
+        retention-days: 5
     - uses: fkirc/skip-duplicate-actions@master
+
+  # Only this job talks to PyPI; the build above runs without any PyPI credential.
+  publish:
+    name: publish
+    needs: build
+    if: needs.build.outputs.is-tag == 'true' && needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing on pypi
+    steps:
+    - name: Download the distribution packages
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      with:
+        name: db12-dist
+        path: dist/
+    # Use trusted publisher for pypi
+    # https://docs.pypi.org/trusted-publishers/
     - name: Publish distribution to PyPI
-      if: startsWith(github.ref, 'refs/tags')
-      uses: pypa/gh-action-pypi-publish@master
+      uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # release/v1
       with:
         skip_existing: 'true'
-        password: ${{ secrets.PYPI_API_TOKEN }}

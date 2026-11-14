@@ -42,6 +42,7 @@ def single_dirac_benchmark(iterations_num=1, measured_copies=None, correction=Tr
     # Do one iteration extra to allow CPUs with variable speed (we ignore zeroth iteration)
     # Do one or more extra iterations to avoid tail effects when copies run in parallel
     it_1 = 0
+    end = os.times()
     while (it_1 <= iterations_num) or (
         measured_copies is not None and measured_copies.value > 0
     ):
@@ -64,7 +65,7 @@ def single_dirac_benchmark(iterations_num=1, measured_copies=None, correction=Tr
 
         it_1 += 1
 
-    cput = sum(end[:4]) - sum(start[:4])  # pylint: disable=used-before-assignment
+    cput = sum(end[:4]) - sum(start[:4])
     wall = end[4] - start[4]
 
     if not cput:
