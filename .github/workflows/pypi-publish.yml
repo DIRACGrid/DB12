@@ -2,6 +2,11 @@ name: Upload Package to Pypi
 
 on: [push]
 
+# Don't cancel: a queued run may be a release build waiting to publish.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions: {}
 
 jobs:
@@ -13,9 +18,11 @@ jobs:
     outputs:
       is-tag: ${{ steps.check-tag.outputs.is-tag }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
     - name: Install pypa/build
       run: >-
         python -m
@@ -42,7 +49,7 @@ jobs:
         name: db12-dist
         path: dist/
         retention-days: 5
-    - uses: fkirc/skip-duplicate-actions@master
+    - uses: fkirc/skip-duplicate-actions@4c5980e005e0ae8f7d9dff27ae88c605fe4c5ecc # master
 
   # Only this job talks to PyPI; the build above runs without any PyPI credential.
   publish:

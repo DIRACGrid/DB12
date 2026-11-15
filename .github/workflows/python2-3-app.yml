@@ -2,13 +2,24 @@ name: DB12 testing
 
 on: [pull_request]
 
+# A new push to the same PR cancels the previous run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   pre-commit:
+    name: pre-commit
     runs-on: ubuntu-latest
     if: github.event_name != 'push'
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+    - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
         python-version: '3.11'
     - name: Install pre-commit
@@ -17,21 +28,27 @@ jobs:
       run: pre-commit run --all-files --show-diff-on-failure
 
   pytest:
+    name: pytest (${{ matrix.python }})
     runs-on: ubuntu-latest
-    if: github.event_name != 'push' || github.repository == 'DIRACGrid/db12'
-
+    if: github.event_name != 'push' || github.repository == 'DIRACGrid/DB12'
     strategy:
       fail-fast: false
       matrix:
-        python:
-          - 2.7.18
-          - 3.6.15
-          - 3.9.17
-          - 3.11.4
+        include:
+          - python: 2.7.18
+            image: python@sha256:c934af72b8bd03b9804d5bde2569c320926e70392d708d113a2e71bcf98c8a20
+          - python: 3.6.15
+            image: python@sha256:d097a4907a8ec079df5ac31872359c2de510f82214c0448e926393b376d3b60d
+          - python: 3.9.17
+            image: python@sha256:9bae2a5ce72f326c8136d517ade0e9b18080625fb3ba7ec10002e0dc99bc4a70
+          - python: 3.11.4
+            image: python@sha256:85b3d192dddbc96588b719e86991e472b390805a754681a38132de1977d8e429
 
-    container: python:${{ matrix.python }}
+    container: ${{ matrix.image }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
     - name: Installing dependencies
       run: |
         python -m pip install pytest mock pytest-mock
@@ -40,22 +57,28 @@ jobs:
       run: pytest
 
   pylint:
+    name: pylint (${{ matrix.python }})
     runs-on: ubuntu-latest
-    if: github.event_name != 'push' || github.repository == 'DIRACGrid/db12'
+    if: github.event_name != 'push' || github.repository == 'DIRACGrid/DB12'
     timeout-minutes: 10
-
     strategy:
       fail-fast: false
       matrix:
-        python:
-          - 2.7.18
-          - 3.6.15
-          - 3.9.17
-          - 3.11.4
+        include:
+          - python: 2.7.18
+            image: python@sha256:c934af72b8bd03b9804d5bde2569c320926e70392d708d113a2e71bcf98c8a20
+          - python: 3.6.15
+            image: python@sha256:d097a4907a8ec079df5ac31872359c2de510f82214c0448e926393b376d3b60d
+          - python: 3.9.17
+            image: python@sha256:9bae2a5ce72f326c8136d517ade0e9b18080625fb3ba7ec10002e0dc99bc4a70
+          - python: 3.11.4
+            image: python@sha256:85b3d192dddbc96588b719e86991e472b390805a754681a38132de1977d8e429
 
-    container: python:${{ matrix.python }}
+    container: ${{ matrix.image }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
     - name: Installing dependencies
       run: |
         python -m pip install pylint pytest mock
