@@ -1,2 +1,10 @@
+[build-system]
+requires = [
+    "setuptools>=42",
+    "setuptools_scm",
+    "wheel",
+]
+build-backend = "setuptools.build_meta"
+
 [tool.isort]
 profile = "black"
