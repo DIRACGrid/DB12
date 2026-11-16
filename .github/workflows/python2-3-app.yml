@@ -8,19 +8,20 @@ jobs:
     if: github.event_name != 'push'
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v5
       with:
-        python-version: '3.9'
+        python-version: '3.11'
     - name: Install pre-commit
       run: pip install pre-commit
     - name: Run pre-commit
       run: pre-commit run --all-files --show-diff-on-failure
 
   pytest:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     if: github.event_name != 'push' || github.repository == 'DIRACGrid/db12'
 
     strategy:
+      fail-fast: false
       matrix:
         python:
           - 2.7.18
@@ -28,23 +29,23 @@ jobs:
           - 3.9.17
           - 3.11.4
 
-    container: python:${{ matrix.python }}-slim
+    container: python:${{ matrix.python }}
     steps:
     - uses: actions/checkout@v4
     - name: Installing dependencies
       run: |
-        apt update && apt install -y git
         python -m pip install pytest mock pytest-mock
         pip install -e .
     - name: Run pytest
       run: pytest
 
   pylint:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     if: github.event_name != 'push' || github.repository == 'DIRACGrid/db12'
     timeout-minutes: 10
 
     strategy:
+      fail-fast: false
       matrix:
         python:
           - 2.7.18
@@ -52,7 +53,7 @@ jobs:
           - 3.9.17
           - 3.11.4
 
-    container: python:${{ matrix.python }}-slim
+    container: python:${{ matrix.python }}
     steps:
     - uses: actions/checkout@v4
     - name: Installing dependencies
