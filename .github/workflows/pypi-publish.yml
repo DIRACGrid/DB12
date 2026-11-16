@@ -23,6 +23,8 @@ jobs:
         persist-credentials: false
     - name: Set up Python
       uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+      with:
+        python-version: '3.13'
     - name: Install pypa/build
       run: >-
         python -m
@@ -49,13 +51,12 @@ jobs:
         name: db12-dist
         path: dist/
         retention-days: 5
-    - uses: fkirc/skip-duplicate-actions@4c5980e005e0ae8f7d9dff27ae88c605fe4c5ecc # master
 
   # Only this job talks to PyPI; the build above runs without any PyPI credential.
   publish:
     name: publish
     needs: build
-    if: needs.build.outputs.is-tag == 'true' && needs.build.result == 'success'
+    if: needs.build.outputs.is-tag == 'true'
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
@@ -69,6 +70,6 @@ jobs:
     # Use trusted publisher for pypi
     # https://docs.pypi.org/trusted-publishers/
     - name: Publish distribution to PyPI
-      uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # release/v1
+      uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
       with:
-        skip_existing: 'true'
+        skip-existing: true
