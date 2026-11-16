@@ -41,9 +41,10 @@ def single_dirac_benchmark(iterations_num=1, measured_copies=None, correction=Tr
     p_2 = 0
     # Do one iteration extra to allow CPUs with variable speed (we ignore zeroth iteration)
     # Do one or more extra iterations to avoid tail effects when copies run in parallel
+    if iterations_num < 1:
+        raise ValueError("iterations_num must be at least 1, got %r" % iterations_num)
     it_1 = 0
-    # Start and end default to "now": if the calibration iteration never runs,
-    # cput/wall end up ~0 and the benchmark returns None.
+    # Always overwritten in the loop (iterations_num >= 1); only set to satisfy pylint.
     end = os.times()
     start = end
     while (it_1 <= iterations_num) or (
