@@ -23,4 +23,5 @@ repos:
     rev: v1.32.0
     hooks:
       - id: zizmor
-        args: ["--no-online-audits"]
+        # Overrides the hook's own args, so keep its --no-progress (zizmor#582).
+        args: ["--no-progress", "--no-online-audits"]

@@ -2,7 +2,8 @@ name: Upload Package to Pypi
 
 on: [push]
 
-# Don't cancel: a queued run may be a release build waiting to publish.
+# Never cancel a running publish. GitHub still replaces an older *pending* run
+# of the same group; tags get their own group, so releases are not affected.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
