@@ -2,6 +2,12 @@ name: Upload Package to Pypi
 
 on: [push]
 
+# Never cancel a running publish. GitHub still replaces an older *pending* run
+# of the same group; tags get their own group, so releases are not affected.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions: {}
 
 jobs:
@@ -14,6 +20,8 @@ jobs:
       is-tag: ${{ steps.check-tag.outputs.is-tag }}
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
     - name: Set up Python
       uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
