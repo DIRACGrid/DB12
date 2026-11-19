@@ -8,3 +8,6 @@ build-backend = "setuptools.build_meta"
 
 [tool.isort]
 profile = "black"
+
+[tool.bandit]
+exclude_dirs = [".github", "docs", "test", "tests"]
