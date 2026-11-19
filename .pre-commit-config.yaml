@@ -25,3 +25,10 @@ repos:
       - id: zizmor
         # Overrides the hook's own args, so keep its --no-progress (zizmor#582).
         args: ["--no-progress", "--no-online-audits"]
+
+  # static security analysis
+  - repo: https://github.com/PyCQA/bandit
+    rev: '1.9.4'
+    hooks:
+    - id: bandit
+      args: ["-q", "-c", "pyproject.toml"]
