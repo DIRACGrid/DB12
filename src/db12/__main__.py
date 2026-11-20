@@ -1,13 +1,14 @@
-""" DIRAC Benchmark 2012 by Ricardo Graciani, and wrapper functions to
-    run multiple copies in parallel by Andrew McNab.
-    This file (dirac_benchmark.py) is intended to be the ultimate upstream
-    shared by different users of the DIRAC Benchmark 2012 (DB12). The
-    canonical version can be found at https://github.com/DIRACGrid/DB12
-    This script can either be imported or run from the command line:
-    ./dirac_benchmark.py NUMBER
-    where NUMBER gives the number of benchmark processes to run in parallel.
-    Run  ./dirac_benchmark.py help  to see more options.
+"""DIRAC Benchmark 2012 by Ricardo Graciani, and wrapper functions to
+run multiple copies in parallel by Andrew McNab.
+This file (dirac_benchmark.py) is intended to be the ultimate upstream
+shared by different users of the DIRAC Benchmark 2012 (DB12). The
+canonical version can be found at https://github.com/DIRACGrid/DB12
+This script can either be imported or run from the command line:
+./dirac_benchmark.py NUMBER
+where NUMBER gives the number of benchmark processes to run in parallel.
+Run  ./dirac_benchmark.py help  to see more options.
 """
+
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
