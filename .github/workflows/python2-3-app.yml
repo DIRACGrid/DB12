@@ -51,7 +51,15 @@ jobs:
     - name: Installing dependencies
       run: |
         python -m pip install pytest mock pytest-mock
-        pip install -e .
+        # Old Pythons (2.7, 3.6) cannot install a PEP 621-only package: they
+        # have neither PEP 660 editable installs (pip >= 21.3) nor a modern
+        # setuptools (>= 61). Fall back to running the tests from src/.
+        if pip install -e .; then
+          echo "db12 installed in editable mode"
+        else
+          echo "PYTHONPATH=src" >> "$GITHUB_ENV"
+          echo "editable install not supported, running the tests from src/"
+        fi
     - name: Run pytest
       run: pytest
 
