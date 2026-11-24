@@ -1,10 +1,42 @@
 [build-system]
-requires = [
-    "setuptools>=42",
-    "setuptools_scm",
-    "wheel",
-]
+requires = ["setuptools>=61", "setuptools_scm[toml]"]
 build-backend = "setuptools.build_meta"
+
+# The version comes from the git tag (as for 1.0.4 and earlier).
+[tool.setuptools_scm]
+
+[project]
+name = "DB12"
+description = "DIRAC Benchmark 2012"
+readme = "README.md"
+license = {text = "GPL-3.0-only"}
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering",
+    "Topic :: System :: Distributed Computing",
+]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://diracgrid.org"
+Repository = "https://github.com/DIRACGrid/DB12"
+Issues = "https://github.com/DIRACGrid/DB12/issues"
+Security = "https://github.com/DIRACGrid/DB12/security/policy"
+
+[project.scripts]
+db12 = "db12.__main__:main"
+
+[project.entry-points.db12]
+metadata = "db12:extension_metadata"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"*" = ["factors.json"]
 
 [tool.isort]
 profile = "black"
