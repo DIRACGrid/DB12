@@ -44,7 +44,7 @@ single_dirac_benchmark()
 
 DB12 is a fully open source project, and you are welcome to contribute to it:
 - Fork the project
-- Develop
+- Develop: `pip install -e .` installs the package in editable mode (it needs Python >= 3.9 and pip >= 21.3, as the package is built with `pyproject.toml` only)
 - Create a Pull Request to propose a change
 
 ## Code quality

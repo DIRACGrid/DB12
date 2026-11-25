@@ -1,10 +1,45 @@
 [build-system]
-requires = [
-    "setuptools>=42",
-    "setuptools_scm",
-    "wheel",
-]
+# setuptools 77 is the first release that accepts an SPDX `license` string.
+requires = ["setuptools>=77", "setuptools_scm[toml]"]
 build-backend = "setuptools.build_meta"
+
+# The version comes from the git tag (as for 1.0.4 and earlier).
+[tool.setuptools_scm]
+
+[project]
+name = "DB12"
+description = "DIRAC Benchmark 2012"
+readme = "README.md"
+license = "GPL-3.0-only"
+license-files = ["LICENSE"]
+# Releases are py3-only wheels: pip on Python 2.7 keeps resolving to 1.0.x.
+requires-python = ">=3.6"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering",
+    "Topic :: System :: Distributed Computing",
+]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://diracgrid.org"
+Repository = "https://github.com/DIRACGrid/DB12"
+Issues = "https://github.com/DIRACGrid/DB12/issues"
+Security = "https://github.com/DIRACGrid/DB12/security/policy"
+
+[project.scripts]
+db12 = "db12.__main__:main"
+
+[project.entry-points.db12]
+metadata = "db12:extension_metadata"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"*" = ["factors.json"]
 
 [tool.isort]
 profile = "black"
