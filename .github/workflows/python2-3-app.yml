@@ -26,8 +26,32 @@ jobs:
     - name: Run pre-commit
       run: pre-commit run --all-files --show-diff-on-failure
 
+  # The wheel is built once on a modern Python: building needs setuptools >= 77,
+  # which the oldest Pythons of the test matrix cannot run.
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+        fetch-depth: 0  # setuptools_scm needs the tags
+    - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+      with:
+        python-version: '3.13'
+    - name: Build the wheel
+      run: |
+        python -m pip install build
+        python -m build --wheel --outdir dist/ .
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: db12-wheel
+        path: dist/
+        retention-days: 1
+
   pytest:
     name: pytest (${{ matrix.python }})
+    needs: build
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -48,18 +72,25 @@ jobs:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
+    - name: Download the wheel
+      if: matrix.python != '2.7.18'
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      with:
+        name: db12-wheel
+        path: dist/
     - name: Installing dependencies
+      run: python -m pip install pytest mock pytest-mock
+    # Python 3 tests the wheel, as users get it; a failed install fails the job.
+    - name: Install the wheel
+      if: matrix.python != '2.7.18'
       run: |
-        python -m pip install pytest mock pytest-mock
-        # Old Pythons (2.7, 3.6) cannot install a PEP 621-only package: they
-        # have neither PEP 660 editable installs (pip >= 21.3) nor a modern
-        # setuptools (>= 61). Fall back to running the tests from src/.
-        if pip install -e .; then
-          echo "db12 installed in editable mode"
-        else
-          echo "PYTHONPATH=src" >> "$GITHUB_ENV"
-          echo "editable install not supported, running the tests from src/"
-        fi
+        python -m pip install dist/*.whl
+        db12 --help
+    # The package is no longer released for Python 2.7 (requires-python), but
+    # the code still has to run there: test it straight from the sources.
+    - name: Use the sources (Python 2.7)
+      if: matrix.python == '2.7.18'
+      run: echo "PYTHONPATH=src" >> "$GITHUB_ENV"
     - name: Run pytest
       run: pytest
 

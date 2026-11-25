@@ -1,5 +1,6 @@
 [build-system]
-requires = ["setuptools>=61", "setuptools_scm[toml]"]
+# setuptools 77 is the first release that accepts an SPDX `license` string.
+requires = ["setuptools>=77", "setuptools_scm[toml]"]
 build-backend = "setuptools.build_meta"
 
 # The version comes from the git tag (as for 1.0.4 and earlier).
@@ -9,11 +10,13 @@ build-backend = "setuptools.build_meta"
 name = "DB12"
 description = "DIRAC Benchmark 2012"
 readme = "README.md"
-license = {text = "GPL-3.0-only"}
+license = "GPL-3.0-only"
+license-files = ["LICENSE"]
+# Releases are py3-only wheels: pip on Python 2.7 keeps resolving to 1.0.x.
+requires-python = ">=3.6"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Programming Language :: Python :: 3",
     "Topic :: Scientific/Engineering",
     "Topic :: System :: Distributed Computing",
